@@ -1,13 +1,23 @@
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom'
+import FontIcon from 'material-ui/FontIcon';
+import IconButton from 'material-ui/IconButton'
+import {List, ListItem} from 'material-ui/List'
 
 class SongsList extends Component {
     render() {
-        console.log(this.props.songs)
+       
         let song = this.props.songs.map((song, i)=>{
-            console.log(song)
+            
             return (
-                <li key={i}><Link to={`/${i}`}>{song.title}</Link><button onClick={() => { this.props.playSong(i) }}>{(this.props.isPlaying) ? 'Pause' : 'Play'}</button></li>
+                <List key={i}>
+                    <ListItem><IconButton onClick={() => { this.props.playSong(i) }}>{(this.props.isPlaying) ? <FontIcon className="material-icons">pause</FontIcon>
+                        : <FontIcon className="material-icons">play_arrow</FontIcon>}
+                    </IconButton>
+                <Link to={`/${i}`}>{song.title}</Link>
+                </ListItem>
+                
+                </List>
                 
             )
         })
