@@ -23,7 +23,6 @@ let songs = [
 ]
 
 app.get('/songs', (req, res)=>{
-    
     res.json(songs)
 })
 

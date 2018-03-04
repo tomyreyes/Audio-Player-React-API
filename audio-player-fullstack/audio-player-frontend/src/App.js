@@ -6,6 +6,8 @@ import axios from 'axios'
 import FontIcon from 'material-ui/FontIcon';
 import IconButton from 'material-ui/IconButton'
 import LinearProgress from 'material-ui/LinearProgress'
+import AudioSpectrum from 'react-audio-spectrum'
+
 
 
 
@@ -24,7 +26,8 @@ class App extends Component {
     this.setState({
       currentSong: this.state.currentSong + index
   })
-}
+  }
+  
 
   playSong = (songId)=>{
     this.setState({
@@ -41,21 +44,15 @@ class App extends Component {
   updateTime = () => {
     
     this.setState({currentTime: this.audioPlayer.currentTime / this.audioPlayer.duration * 100})
-  //     currentTime: this.audioPlayer.currentTime / this.audioPlayer.duration
-  //     // currentTime: this.audioPlayer.duration - this.audioPlayer.currentTime //time remaining
-  //   })
    }
 
    changeTime=(e)=>{
-     console.log(e.clientX)
-     console.log(window.innerWidth)
     let targetTime = (e.clientX / window.innerWidth) * this.audioPlayer.duration
-    console.log(targetTime)
     this.audioPlayer.currentTime = targetTime
    }
 
   componentDidUpdate(prevProps, prevState){
-    if (prevProps.song !== this.props.song){
+    if (prevState.currentSong !== this.state.currentSong){
     this.audioPlayer.load()
     }
     this.state.isPlaying ? this.audioPlayer.play() : this.audioPlayer.pause()
@@ -64,46 +61,70 @@ class App extends Component {
   componentDidMount(){
     axios.get('http://localhost:8080/songs')
     .then((res)=>{
-      console.log(res.data)
       this.setState({
         songs: res.data
       })
     })
   }
   
-  
-  
-  
-
   render() {
-    // console.log(this.state.songs[0].title)
+    const styles = {
+      DivWrap: {
+        textAlign: 'center'
+      },
+      playButton: {
+        fontSize: '50px'
+      },
+      skipButton: {
+        fontSize: '40px'
+      }
+    }
       return (
-        
         this.state.songs.length > 0 &&( 
-      
       <div className="App">  
         
         <Route exact path="/" render={(props)=><SongsList playSong={this.playSong} isPlaying={this.state.isPlaying} songs={this.state.songs} msg={'this is how we pass props in react router'}/>}/>
-        <Route path='/:songId' render={(props) => <SongDetails songs={this.state.songs} isPlaying={this.state.isPlaying} playSong={this.playSong} {...props}/>}/>
-            <h1>{this.state.songs[this.state.currentSong].title}</h1>
+            <div style={styles.DivWrap}><h3>{this.state.songs[this.state.currentSong].title}</h3></div>
+            <div style={styles.DivWrap}>
+              <AudioSpectrum
+                id="audio-canvas"
+                height={400}
+                width={600}
+                audioId={'audio-element'}
+                capColor={'blue'}
+                capHeight={2}
+                meterWidth={2}
+                meterCount={512}
+                meterColor={[
+                  { stop: 0, color: 'grey' },
+                  { stop: 0.5, color: 'black' },
+                  { stop: 1, color: 'green' }
+                ]}
+                gap={4}
+              />
+              </div>
 
             <LinearProgress mode="determinate" onClick={(e)=>{this.changeTime(e)}}value={this.state.currentTime}/>
-            
-            <IconButton onClick={this.play}>{(this.state.isPlaying) ?
-              <FontIcon className="material-icons">pause</FontIcon>
-              : <FontIcon className="material-icons">play_arrow</FontIcon>}</IconButton>
-            <IconButton disabled={this.state.currentSong === 0} onClick={() => { this.changeSong(-1) }}>
-              <FontIcon className="material-icons">skip_previous</FontIcon>
+            <div style={styles.DivWrap}>
+            <p>Currently Playing: {this.state.songs[this.state.currentSong].title}</p>
+             <IconButton disabled={this.state.currentSong === 0} onClick={() => { this.changeSong(-1) }}>
+                <FontIcon className="material-icons" style={{ fontSize: '40px' }} >skip_previous</FontIcon>
             </IconButton>
-            <IconButton disabled={this.state.currentSong === this.state.songs.length - 1} onClick={() => { this.changeSong(1) }}> <FontIcon className="material-icons">skip_next</FontIcon> </IconButton>
+              <IconButton onClick={this.play}>{(this.state.isPlaying) ?
+                <FontIcon className="material-icons" style={styles.playButton}>pause</FontIcon>
+                : <FontIcon className="material-icons" style={styles.playButton}>play_arrow</FontIcon>}</IconButton>
+              <IconButton disabled={this.state.currentSong === this.state.songs.length - 1} onClick={() => { this.changeSong(1) }}> <FontIcon className="material-icons" style={{ fontSize: '40px' }} >skip_next</FontIcon> </IconButton>
+            </div>
             
             
             
-            <audio ref={(self) => { this.audioPlayer = self }}
+            <audio id="audio-element" ref={(self) => { this.audioPlayer = self }}
             onTimeUpdate={this.updateTime}>
-
+              
               <source src={this.state.songs[this.state.currentSong].source} />
             </audio>
+            <Route path='/:songId' render={(props) => <SongDetails songs={this.state.songs} isPlaying={this.state.isPlaying} playSong={this.playSong} {...props} />} />
+           
 
         </div>
        
